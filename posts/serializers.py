@@ -1,4 +1,3 @@
-# posts/serializers.py
 from rest_framework import serializers
 from .models import Post, Like, Comment
 from users.serializers import UserSerializer  # Reutiliza o serializer de User
@@ -42,6 +41,8 @@ class PostSerializer(serializers.ModelSerializer):
         return obj.comments.count()
 
     def validate_content(self, value):
-        if not value.strip() and not self.initial_data.get('image'):
-            raise serializers.ValidationError("Content or image is required.")
+        if not value or not value.strip():
+            image = self.context['request'].FILES.get('image')
+            if not image:
+                raise serializers.ValidationError("Content or image is required.")
         return value
