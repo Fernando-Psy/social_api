@@ -126,10 +126,15 @@ REST_FRAMEWORK = {
 }
 
 # CORS (se o front for separado)
-CORS_ALLOW_ALL_ORIGINS = [
-    'http://localhost:3000',
-    'http://localhost:5173',
-]
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
+# Para produção, use:
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",
+#     "http://localhost:5173",
+#     "https://seu-dominio.com",
+# ]
 
 # JWT Settings
 from datetime import timedelta
