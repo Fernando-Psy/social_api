@@ -53,6 +53,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -125,7 +126,10 @@ REST_FRAMEWORK = {
 }
 
 # CORS (se o front for separado)
-CORS_ALLOW_ALL_ORIGINS = True  # Ajuste para produção!
+CORS_ALLOW_ALL_ORIGINS = [
+    'http://localhost:3000',
+    'http://localhost:5173',
+]
 
 # JWT Settings
 from datetime import timedelta
