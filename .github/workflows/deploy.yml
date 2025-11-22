@@ -27,17 +27,16 @@ jobs:
       - name: Run tests (opcional, mas recomendado)
         run: python manage.py test
 
-  deploy:
-    needs: test
+  heroku-deploy:
     runs-on: ubuntu-latest
+    needs: test
     steps:
       - uses: actions/checkout@v4
-      - name: Install Heroku CLI
+
+      - name: Unshallow repository
+        run: git fetch --all --unshallow
+
+      - name: Add Heroku remote and push
         run: |
-          curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
-      - name: Deploy to Heroku
-        uses: akhileshns/heroku-deploy@v3.12.12
-        with:
-          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: "intense-meadow-21950"
-          heroku_email: "fernando.cbj.psy@gmail.com"
+          git remote add heroku https://heroku:${{ secrets.HEROKU_API_KEY }}@git.heroku.com/${{ secrets.HEROKU_APP_NAME }}.git
+          git push heroku main --force
