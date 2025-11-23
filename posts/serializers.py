@@ -41,8 +41,6 @@ class PostSerializer(serializers.ModelSerializer):
         return obj.comments.count()
 
     def validate_content(self, value):
-        if not value or not value.strip():
-            image = self.context['request'].FILES.get('image')
-            if not image:
-                raise serializers.ValidationError("Content or image is required.")
+        if not value.strip() and not self.initial_data.get('image'):
+            raise serializers.ValidationError("Content or image is required.")
         return value
