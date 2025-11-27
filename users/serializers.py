@@ -11,6 +11,12 @@ class UserSerializer(serializers.ModelSerializer):
     followers_count = serializers.SerializerMethodField(read_only=True)
     following_count = serializers.SerializerMethodField(read_only=True)
 
+    profile_picture = serializers.ImageField(
+        required=False,
+        allow_null=True,
+        use_url=True
+    )
+
     class Meta:
         model = User
         fields = [
@@ -25,6 +31,14 @@ class UserSerializer(serializers.ModelSerializer):
             "following_count",
         ]
         read_only_fields = ["id", "followers_count", "following_count"]
+        extra_kwargs = {
+            "email": {"required": False},
+            "username": {"required": False},
+            "first_name": {"required": False},
+            "last_name": {"required": False},
+            "bio": {"required": False},
+            "profile_picture": {"required": False},
+        }
 
     def get_followers_count(self, obj):
         followers = getattr(obj, "followers", None)
@@ -33,6 +47,16 @@ class UserSerializer(serializers.ModelSerializer):
     def get_following_count(self, obj):
         following = getattr(obj, "following", None)
         return following.count() if following is not None else 0
+
+    def update(self, instance, validated_data):
+        profile_picture = validated_data.get("profile_picture")
+        if profile_picture and instance.profile_picture:
+            instance.profile_picture.delete(save=False)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -76,25 +100,30 @@ class RegisterSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         """Valida se as senhas coincidem."""
         if attrs.get("password") != attrs.get("password2"):
-            raise serializers.ValidationError({"password": _("As senhas não coincidem.")})
+            raise serializers.ValidationError(
+                {"password": _("As senhas não coincidem.")}
+                )
+
+        password = attrs.get("password")
+        try:
+            validate_password(password)
+        except Exception as e:
+            raise serializers.ValidationError({"password": list(e.messages)})
+
         return attrs
 
     def create(self, validated_data):
         """Cria o usuário garantindo password hashing e atomicidade."""
-        validated_data = validated_data.copy()
+        validated_data.pop("password2")
         password = validated_data.pop("password")
-        validated_data.pop("password2", None)
 
         # Normalizar email se presente
         if "email" in validated_data and validated_data["email"] is not None:
             validated_data["email"] = validated_data["email"].strip().lower()
 
-        with transaction.atomic():
-            user = User.objects.create_user(
-                username=validated_data["username"].strip(),
-                email=validated_data.get("email", ""),
-                password=password,
-                first_name=validated_data.get("first_name", "").strip(),
-                last_name=validated_data.get("last_name", "").strip(),
-            )
+        validated_data["username"] = validated_data["username"].strip()
+        validated_data["first_name"] = validated_data.get("first_name", "").strip()
+        validated_data["last_name"] = validated_data.get("last_name", "").strip()
+
+        user = User.objects.create_user(password=password, **validated_data)
         return user

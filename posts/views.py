@@ -3,6 +3,7 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework import permissions
 
 from .models import Post
 from .serializers import PostSerializer
@@ -10,9 +11,8 @@ from follows.models import Follow
 
 
 class IsOwnerOrReadOnly(object):
-    """Permissão personalizada para posts"""
     def has_object_permission(self, request, view, obj):
-        if request.method in ['GET', 'HEAD', 'OPTIONS']:
+        if request.method in permissions.SAFE_METHODS:
             return True
         return obj.user == request.user
 

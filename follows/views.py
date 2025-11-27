@@ -15,23 +15,29 @@ class FollowUserView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, user_id):
-        target_user = get_object_or_404(User, id=user_id)
+        try:
+            target_user = get_object_or_404(User, id=user_id)
 
-        if request.user == target_user:
-            return Response(
-                {'error': 'Você não pode seguir a si mesmo'},
-                status=status.HTTP_400_BAD_REQUEST
+            if request.user == target_user:
+                return Response(
+                    {'error': 'Você não pode seguir a si mesmo'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            follow, created = Follow.objects.get_or_create(
+                follower=request.user,
+                followed=target_user
             )
 
-        follow, created = Follow.objects.get_or_create(
-            follower=request.user,
-            followed=target_user
-        )
-
-        if created:
+            if created:
+                return Response(
+                    {'message': 'Agora você segue este usuário'},
+                    status=status.HTTP_201_CREATED
+                )
+        except Exception as e:
             return Response(
-                {'message': 'Agora você segue este usuário'},
-                status=status.HTTP_201_CREATED
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
         return Response({'message': 'Você já segue este usuário'})

@@ -1,26 +1,20 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from .models import Follow
-from users.serializers import UserSerializer
 
 User = get_user_model()
 
 class FollowSerializer(serializers.ModelSerializer):
-    # representação read-only aninhada
-    follower = UserSerializer(read_only=True)
-    followed = UserSerializer(read_only=True)
+    follower = serializers.SerializerMethodField(read_only=True)
+    followed = serializers.SerializerMethodField(read_only=True)
 
-    # campos write-only para criação/atualização
-    follower_id = serializers.HiddenField(
-        default=serializers.CurrentUserDefault(),
-        source='follower',
-        write_only=True
-    )
-    followed_id = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(),
-        source='followed',
-        write_only=True
-    )
+    def get_follower(self, obj):
+        from users.serializers import UserSerializer
+        return UserSerializer(obj.follower).data
+
+    def get_followed(self, obj):
+        from users.serializers import UserSerializer
+        return UserSerializer(obj.followed).data
 
     class Meta:
         model = Follow
@@ -37,5 +31,4 @@ class FollowSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        # validated_data já contém 'follower' e 'followed' por causa de source=...
         return Follow.objects.create(**validated_data)

@@ -2,7 +2,7 @@ from typing import Any, Dict
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from .models import Post, Like, Comment
-from users.serializers import UserSerializer  # Reutiliza o serializer de User
+from users.serializers import UserSerializer
 
 
 class LikeSerializer(serializers.ModelSerializer):

@@ -25,7 +25,6 @@ class RegisterView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
 
         user = serializer.save()
-
         refresh = RefreshToken.for_user(user)
 
         return Response({
@@ -84,26 +83,32 @@ def login_view(request):
 
 class ProfileUpdateView(APIView):
     """Atualização de perfil do usuário autenticado"""
-    parser_classes = [MultiPartParser, FormParser]
     permission_classes = [IsAuthenticated]
+
+    def get_parsers(self):
+        return  [MultiPartParser, FormParser, JSONParser]
 
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
-    def put(self, request):
-        serializer = UserSerializer(
-            request.user,
-            data=request.data,
-            partial=True
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return Response({
-            'user': serializer.data,
-            'message': 'Perfil atualizado com sucesso!'
-        })
-
     def patch(self, request):
-        return self.put(request)
+        user = request.user
+
+        serializer = UserSerializer(
+            user,
+            data=request.data,
+            partial=True,
+            context={'request': request}
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'user': serializer.data,
+                'message': 'Perfil atualizado com sucesso!'
+            })
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request):
+        return self.patch(request)
