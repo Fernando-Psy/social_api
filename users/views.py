@@ -21,18 +21,27 @@ class RegisterView(generics.CreateAPIView):
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        try:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
 
-        user = serializer.save()
-        refresh = RefreshToken.for_user(user)
+            user = serializer.save()
+            refresh = RefreshToken.for_user(user)
 
-        return Response({
-            'user': UserSerializer(user).data,
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-            'message': 'Usuário criado com sucesso!'
-        }, status=status.HTTP_201_CREATED)
+            return Response({
+                'user': UserSerializer(user).data,
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+                'message': 'Usuário criado com sucesso!'
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            print(f"Erro no registro: {str(e)}")  # Debug
+            if hasattr(e, 'detail'):
+                return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'Erro ao criar usuário. Tente novamente.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 @api_view(['POST'])
@@ -84,31 +93,43 @@ def login_view(request):
 class ProfileUpdateView(APIView):
     """Atualização de perfil do usuário autenticado"""
     permission_classes = [IsAuthenticated]
-
-    def get_parsers(self):
-        return  [MultiPartParser, FormParser, JSONParser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
     def patch(self, request):
-        user = request.user
+        try:
+            user = request.user
 
-        serializer = UserSerializer(
-            user,
-            data=request.data,
-            partial=True,
-            context={'request': request}
-        )
+            # Debug - ver o que está chegando
+            print(f"Request data: {request.data}")
+            print(f"Request files: {request.FILES}")
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                'user': serializer.data,
-                'message': 'Perfil atualizado com sucesso!'
-            })
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            serializer = UserSerializer(
+                user,
+                data=request.data,
+                partial=True,
+                context={'request': request}
+            )
+
+            if serializer.is_valid():
+                updated_user = serializer.save()
+                return Response({
+                    'user': UserSerializer(updated_user).data,
+                    'message': 'Perfil atualizado com sucesso!'
+                })
+
+            print(f"Serializer errors: {serializer.errors}")  # Debug
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            print(f"Erro ao atualizar perfil: {str(e)}")  # Debug
+            return Response(
+                {'error': f'Erro ao atualizar perfil: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     def put(self, request):
         return self.patch(request)
