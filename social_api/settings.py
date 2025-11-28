@@ -1,4 +1,4 @@
-from logging import config
+from decouple import config
 import os
 from pathlib import Path
 from datetime import timedelta
