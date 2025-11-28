@@ -17,7 +17,7 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     'intense-meadow-21950-fa90af6f25e4.herokuapp.com',
-    'main.d8yoxzhri0r0h.amplifyapp.com/',
+    'main.d8yoxzhri0r0h.amplifyapp.com',
 ]
 
 # Application definition
@@ -115,8 +115,7 @@ else:
     # Produção: especificar origens permitidas
     CORS_ALLOWED_ORIGINS = [
         "https://intense-meadow-21950-fa90af6f25e4.herokuapp.com",
-        # Adicione o domínio do seu frontend aqui quando fizer deploy
-        "https://main.d8yoxzhri0r0h.amplifyapp.com/",
+        "https://main.d8yoxzhri0r0h.amplifyapp.com",
     ]
 
 CORS_ALLOW_CREDENTIALS = True
