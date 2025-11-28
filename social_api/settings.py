@@ -89,7 +89,7 @@ WSGI_APPLICATION = 'social_api.wsgi.application'
 
 ON_HEROKU = os.environ.get('DATABASE_URL')
 
-'''if ON_HEROKU:
+if ON_HEROKU:
     DATABASES = {
         'default': dj_database_url.config(
             default=os.environ.get('DATABASE_URL'),
@@ -97,13 +97,13 @@ ON_HEROKU = os.environ.get('DATABASE_URL')
             conn_health_checks=True
         )
     }
-else:'''
-DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-}
+else:
+    DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+    }
 
 # Banco de dados (PostgreSQL)
 '''DATABASES = {
