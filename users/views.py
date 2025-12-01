@@ -35,7 +35,7 @@ class RegisterView(generics.CreateAPIView):
                 'message': 'Usuário criado com sucesso!'
             }, status=status.HTTP_201_CREATED)
         except Exception as e:
-            print(f"Erro no registro: {str(e)}")  # Debug
+            print(f"Erro no registro: {str(e)}")
             if hasattr(e, 'detail'):
                 return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
             return Response(
@@ -103,7 +103,6 @@ class ProfileUpdateView(APIView):
         try:
             user = request.user
 
-            # Debug - ver o que está chegando
             print(f"Request data: {request.data}")
             print(f"Request files: {request.FILES}")
 
@@ -121,11 +120,11 @@ class ProfileUpdateView(APIView):
                     'message': 'Perfil atualizado com sucesso!'
                 })
 
-            print(f"Serializer errors: {serializer.errors}")  # Debug
+            print(f"Serializer errors: {serializer.errors}")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
-            print(f"Erro ao atualizar perfil: {str(e)}")  # Debug
+            print(f"Erro ao atualizar perfil: {str(e)}")
             return Response(
                 {'error': f'Erro ao atualizar perfil: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -133,3 +132,12 @@ class ProfileUpdateView(APIView):
 
     def put(self, request):
         return self.patch(request)
+
+
+class UserListView(generics.ListAPIView):
+    """Lista todos os usuários (exceto o usuário atual)"""
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserSerializer
+
+    def get_queryset(self):
+        return User.objects.exclude(id=self.request.user.id).filter(is_active=True)
