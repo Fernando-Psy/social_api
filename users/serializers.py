@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
+import os
 
 User = get_user_model()
 
@@ -49,12 +50,19 @@ class UserSerializer(serializers.ModelSerializer):
         return following.count() if following is not None else 0
 
     def update(self, instance, validated_data):
-        profile_picture = validated_data.get("profile_picture")
-        if profile_picture and instance.profile_picture:
+        new_profile_picture = validated_data.get("profile_picture")
+        if new_profile_picture:
+            if instance.profile_picture:
+                try:
+                    if os.path.isfile(instance.profile_picture.path):
+                        os.remove(instance.profile_picture.path)
+                except Exception as e:
+                    print(f"Erro ao deletar a imagem antiga: {str(e)}")
             instance.profile_picture.delete(save=False)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
+
         instance.save()
         return instance
 
@@ -112,6 +120,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         return attrs
 
+    @transaction.atomic
     def create(self, validated_data):
         """Cria o usuário garantindo password hashing e atomicidade."""
         validated_data.pop("password2")

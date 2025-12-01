@@ -1,3 +1,4 @@
+import traceback
 from django.contrib.auth import get_user_model, authenticate
 from django.db import transaction
 from rest_framework import generics, status
@@ -7,6 +8,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+
+from follows import serializers
 
 from .serializers import RegisterSerializer, UserSerializer
 
@@ -22,6 +25,8 @@ class RegisterView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         try:
+            print(f"Dados recebidos para registro: {request.data}")
+
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
 
@@ -34,10 +39,15 @@ class RegisterView(generics.CreateAPIView):
                 'access': str(refresh.access_token),
                 'message': 'Usuário criado com sucesso!'
             }, status=status.HTTP_201_CREATED)
+
+        except serializers.ValidationError as e:
+            print(f"Erro de validação no registro: {e.detail}")
+            return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
+
         except Exception as e:
             print(f"Erro no registro: {str(e)}")
-            if hasattr(e, 'detail'):
-                return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
+            traceback.print_exc()
+
             return Response(
                 {'error': 'Erro ao criar usuário. Tente novamente.'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -91,7 +101,6 @@ def login_view(request):
 
 
 class ProfileUpdateView(APIView):
-    """Atualização de perfil do usuário autenticado"""
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
@@ -106,6 +115,10 @@ class ProfileUpdateView(APIView):
             print(f"Request data: {request.data}")
             print(f"Request files: {request.FILES}")
 
+            data = request.data.copy()
+            if 'profile_picture' in request.FILES:
+                data['profile_picture'] = request.FILES['profile_picture']
+
             serializer = UserSerializer(
                 user,
                 data=request.data,
@@ -115,6 +128,9 @@ class ProfileUpdateView(APIView):
 
             if serializer.is_valid():
                 updated_user = serializer.save()
+                print(f"Perfil atualizado com sucesso")
+                print(f"Profile picture: {updated_user.profile_picture}")
+
                 return Response({
                     'user': UserSerializer(updated_user).data,
                     'message': 'Perfil atualizado com sucesso!'
@@ -125,6 +141,8 @@ class ProfileUpdateView(APIView):
 
         except Exception as e:
             print(f"Erro ao atualizar perfil: {str(e)}")
+            traceback.print_exc()
+
             return Response(
                 {'error': f'Erro ao atualizar perfil: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR

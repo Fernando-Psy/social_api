@@ -16,6 +16,7 @@ def api_root(request):
                 'register': '/api/auth/register/',
                 'login': '/api/auth/login/',
                 'profile': '/api/auth/profile/',
+                'users_list': '/api/auth/list/',
                 'token': '/api/token/',
                 'token_refresh': '/api/token/refresh/',
             },
@@ -59,3 +60,6 @@ urlpatterns = [
 # Serve media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+else:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
