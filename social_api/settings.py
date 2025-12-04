@@ -167,19 +167,21 @@ TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
+# Static files
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Media files
+# Media files — defina SEMPRE as variáveis base
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# Configuração de armazenamento
 if not DEBUG:
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     CLOUDINARY_URL = os.getenv('CLOUDINARY_URL')
 else:
+    # Em desenvolvimento, cria as pastas
     os.makedirs(MEDIA_ROOT, exist_ok=True)
     os.makedirs(os.path.join(MEDIA_ROOT, 'profile_pics'), exist_ok=True)
     os.makedirs(os.path.join(MEDIA_ROOT, 'post_images'), exist_ok=True)
