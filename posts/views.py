@@ -1,4 +1,3 @@
-from tokenize import Comment
 from django.db.models import Count
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
@@ -7,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import permissions
 
-from .models import Like, Post
+from .models import Like, Post, Comment
 from .serializers import CommentSerializer, PostSerializer
 from follows.models import Follow
 
