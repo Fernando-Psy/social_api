@@ -173,16 +173,16 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 if not DEBUG:
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    CLOUDINARY_STORAGE = os.getenv('CLOUDINARY_URL')
+    CLOUDINARY_URL = os.getenv('CLOUDINARY_URL')
 else:
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-os.makedirs(MEDIA_ROOT, exist_ok=True)
-os.makedirs(os.path.join(MEDIA_ROOT, 'profile_pics'), exist_ok=True)
-os.makedirs(os.path.join(MEDIA_ROOT, 'post_images'), exist_ok=True)
+    os.makedirs(MEDIA_ROOT, exist_ok=True)
+    os.makedirs(os.path.join(MEDIA_ROOT, 'profile_pics'), exist_ok=True)
+    os.makedirs(os.path.join(MEDIA_ROOT, 'post_images'), exist_ok=True)
 
 # Upload settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5 MB
