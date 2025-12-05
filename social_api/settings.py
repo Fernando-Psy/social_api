@@ -6,11 +6,7 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# Use variável de ambiente em produção
 SECRET_KEY = config('SECRET_KEY')
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = [
@@ -31,11 +27,11 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
+    'cloudinary_storage',  # ANTES de django.contrib.staticfiles
+    'cloudinary',
     'users',
     'posts',
     'follows',
-    'cloudinary_storage',
-    'cloudinary',
 ]
 
 MIDDLEWARE = [
@@ -111,10 +107,8 @@ SIMPLE_JWT = {
 
 # CORS Settings
 if DEBUG:
-    # Desenvolvimento: permite tudo
     CORS_ALLOW_ALL_ORIGINS = True
 else:
-    # Produção: especificar origens permitidas
     CORS_ALLOWED_ORIGINS = [
         "https://intense-meadow-21950-fa90af6f25e4.herokuapp.com",
         "https://main.d8yoxzhri0r0h.amplifyapp.com",
@@ -172,37 +166,31 @@ STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Media files — defina SEMPRE as variáveis base
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# ============= CONFIGURAÇÃO DE MEDIA FILES =============
 
-# Configuração de armazenamento S3 (produção)
-if not DEBUG:
-    # AWS S3
-    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-    AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
-    AWS_S3_REGION_NAME = 'us-east-1'  # ajuste conforme sua região
-    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
-    AWS_DEFAULT_ACL = None
-    AWS_S3_OBJECT_PARAMETERS = {
-        'CacheControl': 'max-age=86400',  # cache por 1 dia
-    }
-    AWS_LOCATION = 'media'
-    AWS_QUERYSTRING_AUTH = False  # URLs públicas
+if DEBUG:
+    # Desenvolvimento: usar sistema de arquivos local
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
-    # Static files (opcional, se quiser usar S3 também para static)
-    STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
-    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
-else:
-    # Em desenvolvimento, cria as pastas
+    # Criar pastas necessárias
     os.makedirs(MEDIA_ROOT, exist_ok=True)
     os.makedirs(os.path.join(MEDIA_ROOT, 'profile_pics'), exist_ok=True)
     os.makedirs(os.path.join(MEDIA_ROOT, 'post_images'), exist_ok=True)
-    
+else:
+    # Produção: usar Cloudinary
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
+        'API_KEY': config('CLOUDINARY_API_KEY'),
+        'API_SECRET': config('CLOUDINARY_API_SECRET'),
+    }
+
+    # Usar Cloudinary para media files
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+    # URLs do Cloudinary (geradas automaticamente)
+    MEDIA_URL = '/media/'
+
 # Upload settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5 MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5 MB
