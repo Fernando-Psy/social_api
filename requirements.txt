@@ -6,6 +6,7 @@ charset-normalizer==3.4.4
 cloudinary==1.44.1
 dj-database-url==3.0.1
 Django==5.2.8
+django-cloudinary-storage==0.3.0
 django-cors-headers==4.9.0
 django-extensions==4.1
 django-storages==1.14.6
