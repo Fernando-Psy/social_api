@@ -12,12 +12,6 @@ class UserSerializer(serializers.ModelSerializer):
     followers_count = serializers.SerializerMethodField(read_only=True)
     following_count = serializers.SerializerMethodField(read_only=True)
 
-    profile_picture = serializers.ImageField(
-        required=False,
-        allow_null=True,
-        use_url=True
-    )
-
     class Meta:
         model = User
         fields = [

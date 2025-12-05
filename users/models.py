@@ -1,15 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import MaxLengthValidator
 
 class User(AbstractUser):
-    profile_picture = models.ImageField(
-        upload_to='profile_pics/',
-        blank=True,
-        null=True,
-        help_text="Foto de perfil do usuário.",
-        validators=[MaxLengthValidator(1024)]
-    )
+    profile_picture = models.URLField(max_length=500, blank=True, null=True, help_text="URL da foto de perfil do usuário no Cloudinary.")
     bio = models.TextField(
         blank=True,
         null=True,
