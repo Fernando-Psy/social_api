@@ -27,7 +27,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
-    'cloudinary_storage',
+    'cloudinary_storage',  # ANTES de django.contrib.staticfiles
     'cloudinary',
     'users',
     'posts',
@@ -166,6 +166,7 @@ STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# ============= CONFIGURAÇÃO DE MEDIA FILES =============
 
 if DEBUG:
     # Desenvolvimento: usar sistema de arquivos local
@@ -179,9 +180,9 @@ if DEBUG:
 else:
     # Produção: usar Cloudinary
     CLOUDINARY_STORAGE = {
-        'CLOUD_NAME': 'Root',
-        'API_KEY': '715438545173147',
-        'API_SECRET': 'FGfZ5uIA3_H4GH7F3CQnScn6cX0',
+        'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
+        'API_KEY': config('CLOUDINARY_API_KEY'),
+        'API_SECRET': config('CLOUDINARY_API_SECRET'),
     }
 
     # Usar Cloudinary para media files
