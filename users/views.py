@@ -1,13 +1,12 @@
 import traceback
 from django.contrib.auth import get_user_model, authenticate
-from django.db import transaction
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from rest_framework.parsers import JSONParser
 
 from follows import serializers
 
@@ -21,7 +20,7 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = [AllowAny]
     serializer_class = RegisterSerializer
-    parser_classes = [JSONParser, MultiPartParser, FormParser]
+    parser_classes = [JSONParser]
 
     def create(self, request, *args, **kwargs):
         try:
@@ -102,7 +101,7 @@ def login_view(request):
 
 class ProfileUpdateView(APIView):
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    parser_classes = [JSONParser]
 
     def get(self, request):
         serializer = UserSerializer(request.user)
@@ -113,11 +112,6 @@ class ProfileUpdateView(APIView):
             user = request.user
 
             print(f"Request data: {request.data}")
-            print(f"Request files: {request.FILES}")
-
-            data = request.data.copy()
-            if 'profile_picture' in request.FILES:
-                data['profile_picture'] = request.FILES['profile_picture']
 
             serializer = UserSerializer(
                 user,
@@ -129,7 +123,7 @@ class ProfileUpdateView(APIView):
             if serializer.is_valid():
                 updated_user = serializer.save()
                 print(f"Perfil atualizado com sucesso")
-                print(f"Profile picture: {updated_user.profile_picture}")
+                print(f"Profile picture URL: {updated_user.profile_picture}")
 
                 return Response({
                     'user': UserSerializer(updated_user).data,

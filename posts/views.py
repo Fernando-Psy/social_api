@@ -3,7 +3,6 @@ from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import permissions
 
 from .models import Like, Post, Comment
@@ -21,7 +20,6 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 class PostListCreateView(generics.ListCreateAPIView):
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
 
     def get_queryset(self):
         following_ids = Follow.objects.filter(
@@ -48,7 +46,6 @@ class PostListCreateView(generics.ListCreateAPIView):
 class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
-    parser_classes = [MultiPartParser, FormParser]
 
     def get_queryset(self):
         return Post.objects.select_related('user').prefetch_related(
@@ -66,11 +63,7 @@ class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
                     {'error': 'Você não tem permissão para deletar este post.'},
                     status=status.HTTP_403_FORBIDDEN
                 )
-            if instance.image:
-                try:
-                    instance.image.delete(save=False)
-                except Exception as e:
-                    print(f"Erro ao deletar a imagem do post: {e}")
+            # Não precisa mais deletar arquivo de imagem
             instance.delete()
             return Response(
                 {'message': 'Post deletado com sucesso!'},

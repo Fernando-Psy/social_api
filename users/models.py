@@ -2,7 +2,12 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 class User(AbstractUser):
-    profile_picture = models.URLField(max_length=500, blank=True, null=True, help_text="URL da foto de perfil do usuário no Cloudinary.")
+    profile_picture = models.URLField(
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text="URL da foto de perfil do usuário no Cloudinary."
+    )
     bio = models.TextField(
         blank=True,
         null=True,
@@ -25,7 +30,6 @@ class User(AbstractUser):
         verbose_name='user permissions',
     )
 
-    # Métodos
     def __str__(self):
         return f"{self.username} ({self.email})"
 

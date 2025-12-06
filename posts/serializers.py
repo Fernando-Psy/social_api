@@ -32,6 +32,8 @@ class PostSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)
     likes_count = serializers.SerializerMethodField()
     comments_count = serializers.SerializerMethodField()
+    # Agora image é URLField
+    image = serializers.URLField(required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = Post
@@ -43,8 +45,8 @@ class PostSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'user', 'created_at', 'updated_at']
         extra_kwargs = {
-            'image': {'required': False, 'allow_null': True},
-            'content': {'required': False, 'allow_null': True},
+            'image': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'content': {'required': False, 'allow_null': True, 'allow_blank': True},
         }
 
     def get_likes_count(self, obj: Post) -> int:
@@ -65,21 +67,14 @@ class PostSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Validação de nível de objeto: exige ao menos 'content' não vazio ou 'image'.
-        Usa dados do request para cobrir upload via multipart (request.data/request.FILES).
+        Validação: exige ao menos 'content' não vazio ou 'image' URL válida.
         """
         content = attrs.get('content') or ''
         content_stripped = content.strip() if isinstance(content, str) else content
-        has_image_in_attrs = attrs.get('image') is not None
+        image = attrs.get('image') or ''
+        image_stripped = image.strip() if isinstance(image, str) else image
 
-        # Em alguns cenários (multipart/form-data) a imagem pode estar em request.data/FILES
-        request = self.context.get('request') if isinstance(self.context, dict) else None
-        has_image_in_request = False
-        if request is not None:
-            # request.data pode conter o campo 'image' mesmo que não esteja em attrs
-            has_image_in_request = bool(request.data.get('image') or request.FILES.get('image'))
-
-        if not content_stripped and not (has_image_in_attrs or has_image_in_request):
+        if not content_stripped and not image_stripped:
             raise serializers.ValidationError(
                 {"non_field_errors": [_("Content or image is required.")]},
                 code='required'

@@ -3,8 +3,8 @@ from django.conf import settings
 
 class Post(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='posts')
-    content = models.TextField()
-    image = models.URLField(max_length=500, blank=True, null=True, help_text="URL da imagem do post no Cloudinary.")
+    content = models.TextField(blank=True)
+    image = models.URLField(max_length=500, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

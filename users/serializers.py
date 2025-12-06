@@ -3,7 +3,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
-import os
 
 User = get_user_model()
 
@@ -11,6 +10,11 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     followers_count = serializers.SerializerMethodField(read_only=True)
     following_count = serializers.SerializerMethodField(read_only=True)
+    profile_picture = serializers.URLField(
+        required=False,
+        allow_blank=True,
+        allow_null=True
+    )
 
     class Meta:
         model = User
@@ -44,16 +48,6 @@ class UserSerializer(serializers.ModelSerializer):
         return following.count() if following is not None else 0
 
     def update(self, instance, validated_data):
-        new_profile_picture = validated_data.get("profile_picture")
-        if new_profile_picture:
-            if instance.profile_picture:
-                try:
-                    if os.path.isfile(instance.profile_picture.path):
-                        os.remove(instance.profile_picture.path)
-                except Exception as e:
-                    print(f"Erro ao deletar a imagem antiga: {str(e)}")
-            instance.profile_picture.delete(save=False)
-
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
@@ -120,7 +114,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         validated_data.pop("password2")
         password = validated_data.pop("password")
 
-        # Normalizar email se presente
         if "email" in validated_data and validated_data["email"] is not None:
             validated_data["email"] = validated_data["email"].strip().lower()
 
